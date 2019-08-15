@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+       http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
+
+  <int:channel id="fromdb"/>
+  <int:channel id="transformer"/>
+  <int:channel id="splitted"/>
+  <int:channel id="toKafka"/>
+
+  <int-jdbc:inbound-channel-adapter
+    channel="fromdb"
+    data-source="dataSource"
+    max-rows="2"
+    row-mapper="eventRowMapper"
+    query="SELECT id, create_date, payload, tipo FROM databus_event  WHERE not processed"
+    update="UPDATE databus_event SET processed = true">
+    <int:poller fixed-delay="500"/>
+  </int-jdbc:inbound-channel-adapter>
+
+  <int:splitter input-channel="fromdb" output-channel="splitted"/>
+
+  <int:header-enricher input-channel="splitted" output-channel="transformer">
+    <int:header name="tipo"  expression="payload['tipo']"/>
+  </int:header-enricher>
+
+  <int:object-to-json-transformer input-channel="transformer" output-channel="toKafka"/>
+
+  <int-kafka:outbound-channel-adapter
+    kafka-template="kafkaTemplate"
+    channel="toKafka"
+    message-key-expression="headers['tipo']"
+    topic="databus"/>
+
+
+</beans>

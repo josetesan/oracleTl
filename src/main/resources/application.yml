@@ -1,0 +1,21 @@
+spring:
+    datasource:
+        url: jdbc:postgresql://192.168.1.36:5432/postgres
+        username: postgres
+        password: mysecretpassword
+        hikari:
+            max-lifetime: 600000
+    kafka:
+        bootstrap-servers: localhost:9092
+        client-id: oracleTL
+        producer:
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    jmx:
+        enabled: true
+
+management:
+    metrics:
+        export:
+            simple:
+                step: 5s
+
