@@ -8,8 +8,7 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource("classpath:applicationContext.xml")
 public class OracletlApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(OracletlApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(OracletlApplication.class, args);
+  }
 }
